@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM python:3.12-slim AS builder
+FROM python:3.15-slim AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY README.md ./
 RUN uv sync --locked --no-dev
 
 
-FROM python:3.12-slim AS runtime
+FROM python:3.15-slim AS runtime
 # Links the GHCR package to this repository, so CI's GITHUB_TOKEN can push to it (no manual "Manage Actions access" step).
 LABEL org.opencontainers.image.source="https://github.com/ika100-demo/taskboard12-api" \
       org.opencontainers.image.description="Task API for taskboard12"
