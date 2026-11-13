@@ -26,7 +26,7 @@ As a taskboard12 user, I want to list all my tasks, so that I can see what is op
 - **AC-001.4** Given the service is running, when a client sends `POST /tasks` with `title` missing, `null`, empty or whitespace only, then the response is `422` with an error whose location names the field `title`, and `GET /tasks` does not contain a new task.
 - **AC-001.5** Given the service is running, when a client sends `POST /tasks` with a `title` of 201 characters (after trimming surrounding whitespace), then the response is `422` naming the field `title`; a title of exactly 200 characters is accepted with `201`, and surrounding whitespace is removed from the stored `title`.
 - **AC-001.6** Given the service is running, when a client sends `POST /tasks` with a `due_date` that is not a valid calendar date in `YYYY-MM-DD` form (for example `"2026-02-30"`, `"01.12.2026"` or `"tomorrow"`), then the response is `422` with an error whose location names the field `due_date`, and no task is created.
-- **AC-001.7** Given tasks were created, when the service is restarted, then `GET /tasks` returns `200` with `[]`.
+- ~~**AC-001.7**~~ superseded by AC-002.1 on 2026-11-13: Given tasks were created, when the service is restarted, then `GET /tasks` returns `200` with `[]`.
 
 ## Non-goals
 
@@ -58,3 +58,4 @@ As a taskboard12 user, I want to list all my tasks, so that I can see what is op
 - 2026-11-13 approved
 - 2026-11-13 building
 - 2026-11-13 done
+- 2026-11-13 AC-001.7 superseded by AC-002.1
