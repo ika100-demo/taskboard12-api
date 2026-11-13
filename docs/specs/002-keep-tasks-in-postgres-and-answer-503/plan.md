@@ -10,6 +10,7 @@ tasks:
     covers: [AC-002.1, AC-002.2, AC-002.3, AC-002.4, AC-002.5, AC-002.6]
     parallel_safe: true
     depends_on: []
+    done: true
   - id: t2
     title: Wire PostgresTaskStore into create_app, async routes, 503 handler and /ready check
     files: [src/taskboard12_api/tasks/store.py, src/taskboard12_api/tasks/router.py, src/taskboard12_api/tasks/__init__.py, src/taskboard12_api/main.py, tests/test_tasks_store.py, docs/env-vars.md]
