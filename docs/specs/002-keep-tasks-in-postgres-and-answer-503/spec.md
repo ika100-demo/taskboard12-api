@@ -1,7 +1,7 @@
 ---
 spec_id: 002-keep-tasks-in-postgres-and-answer-503
 title: Keep tasks in Postgres and answer 503 while the database is unreachable
-status: building
+status: done
 priority: P1
 shape: service-python
 parent: ika100-demo/taskboard12-gitops:001-persist-tasks-in-postgres-and-manage
@@ -101,3 +101,4 @@ startup if missing, and a database that is down at startup must not crash the pr
 - 2026-11-13 created from the system plan, with its criteria (spec 147)
 - 2026-11-13 approved
 - 2026-11-13 building
+- 2026-11-13 done
