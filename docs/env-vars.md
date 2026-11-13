@@ -9,6 +9,12 @@ Configuration is read exclusively from environment variables. Defaults below are
 | `PORT` | `8080` | HTTP port the service listens on. |
 | `LOG_LEVEL` | `INFO` | Logging level. One of `DEBUG`, `INFO`, `WARNING`, `ERROR`. |
 
+## Storage
+
+| Variable | Default | Description |
+|---|---|---|
+| `DATABASE_URL` | _(unset)_ | libpq URI of the Postgres database holding the tasks, of the form `postgresql://<user>@<host>:5432/<db>` (password via the URI or `PGPASSWORD`). Unset: the app still starts, but `/tasks` answers `503` and `/ready` answers `503`. Injected by the gitops `postgres` resource. |
+
 ## Observability
 
 | Variable | Default | Description |

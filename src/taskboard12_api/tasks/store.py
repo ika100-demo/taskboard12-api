@@ -1,11 +1,11 @@
-"""Task stores: Postgres-backed and in-memory."""
+"""Postgres-backed task store."""
 
 from __future__ import annotations
 
 import asyncio
 import builtins
-import threading
 from datetime import UTC, date, datetime
+from typing import cast
 from uuid import uuid4
 
 import psycopg
@@ -130,33 +130,9 @@ class PostgresTaskStore:
 
 def _to_task(row: tuple[object, ...]) -> Task:
     task_id, title, due_date, created_at = row
-    assert isinstance(title, str)
-    assert isinstance(created_at, datetime)
-    assert due_date is None or isinstance(due_date, date)
     return Task(
         id=str(task_id),
-        title=title,
-        due_date=due_date,
-        created_at=created_at.astimezone(UTC),
+        title=cast(str, title),
+        due_date=cast("date | None", due_date),
+        created_at=cast(datetime, created_at).astimezone(UTC),
     )
-
-
-class InMemoryTaskStore:
-    def __init__(self) -> None:
-        self._tasks: list[Task] = []
-        self._lock = threading.Lock()
-
-    def add(self, title: str, due_date: date | None) -> Task:
-        task = Task(
-            id=str(uuid4()),
-            title=title,
-            due_date=due_date,
-            created_at=datetime.now(UTC),
-        )
-        with self._lock:
-            self._tasks.append(task)
-        return task
-
-    def list(self) -> list[Task]:
-        with self._lock:
-            return self._tasks.copy()
