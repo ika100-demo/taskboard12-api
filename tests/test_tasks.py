@@ -11,14 +11,10 @@ from fastapi.testclient import TestClient
 from taskboard12_api import main
 
 
-def _new_client() -> TestClient:
-    # Resolved at call time so a missing create_app fails each test on its own.
-    return TestClient(main.create_app())  # type: ignore[attr-defined]
-
-
 @pytest.fixture()
-def tasks_client() -> TestClient:
-    return _new_client()
+def tasks_client(db_url: str) -> TestClient:
+    # create_app is resolved at call time so a missing symbol fails each test on its own.
+    return TestClient(main.create_app(database_url=db_url))  # type: ignore[attr-defined]
 
 
 def _locs(response: Any) -> list[list[Any]]:
@@ -111,13 +107,3 @@ def test_invalid_due_date_is_422_and_creates_nothing(  # AC-001.6
     assert response.status_code == 422
     assert ["body", "due_date"] in _locs(response)
     assert tasks_client.get("/tasks").json() == []
-
-
-def test_restart_starts_with_empty_list() -> None:  # AC-001.7
-    first = _new_client()
-    assert first.post("/tasks", json={"title": "Buy milk"}).status_code == 201
-    assert len(first.get("/tasks").json()) == 1
-    second = _new_client()
-    response = second.get("/tasks")
-    assert response.status_code == 200
-    assert response.json() == []

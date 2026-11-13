@@ -65,8 +65,20 @@ class DbProxy:
         self._conns: list[socket.socket] = []
         self._lock = threading.Lock()
         self.port = 0
+        self._hang = False
 
     def open(self) -> None:
+        """Listen and forward to the database."""
+        self._hang = False
+        self._listen()
+
+    def hang(self) -> None:
+        """Listen and accept connections but never forward a byte."""
+        self.close()
+        self._hang = True
+        self._listen()
+
+    def _listen(self) -> None:
         listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         listener.bind(("127.0.0.1", self.port))
@@ -78,6 +90,8 @@ class DbProxy:
     def close(self) -> None:
         listener, self._listener = self._listener, None
         if listener is not None:
+            with contextlib.suppress(OSError):
+                listener.shutdown(socket.SHUT_RDWR)  # wakes a thread blocked in accept()
             with contextlib.suppress(OSError):
                 listener.close()
         with self._lock:
@@ -94,6 +108,10 @@ class DbProxy:
                 client, _ = listener.accept()
             except OSError:
                 return
+            if self._hang:
+                with self._lock:
+                    self._conns.append(client)
+                continue
             try:
                 upstream = socket.create_connection(self._target, timeout=5)
             except OSError:

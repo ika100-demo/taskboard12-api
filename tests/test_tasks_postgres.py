@@ -104,6 +104,16 @@ def test_get_tasks_is_503_within_5s_through_closed_proxy(db_proxy: Any) -> None:
     assert response.json() == UNAVAILABLE
 
 
+def test_get_tasks_is_503_within_5s_when_database_hangs(db_proxy: Any) -> None:  # AC-002.4
+    client = TestClient(create_app(database_url=db_proxy.url))
+    db_proxy.hang()
+    started = time.monotonic()
+    response = client.get("/tasks")
+    assert time.monotonic() - started < 5
+    assert response.status_code == 503
+    assert response.json() == UNAVAILABLE
+
+
 def test_get_tasks_is_503_when_database_url_is_unset(
     monkeypatch: Any,
 ) -> None:  # AC-002.4
