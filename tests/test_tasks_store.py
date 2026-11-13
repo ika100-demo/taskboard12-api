@@ -1,70 +1,24 @@
-"""Unit tests for InMemoryTaskStore and per-app store wiring."""
+"""Unit tests for per-app PostgresTaskStore wiring."""
 
 from __future__ import annotations
 
-from datetime import UTC, date
-from threading import Thread
+import pytest
 
 from taskboard12_api.main import create_app
-from taskboard12_api.tasks import InMemoryTaskStore
+from taskboard12_api.tasks import PostgresTaskStore
 
-
-def test_add_returns_task_with_id_and_utc_created_at() -> None:
-    task = InMemoryTaskStore().add("write", date(2030, 1, 2))
-    assert isinstance(task.id, str)
-    assert task.id
-    assert task.title == "write"
-    assert task.due_date == date(2030, 1, 2)
-    assert task.created_at.tzinfo is not None
-    assert task.created_at.utcoffset() == UTC.utcoffset(None)
-
-
-def test_add_generates_unique_ids() -> None:
-    store = InMemoryTaskStore()
-    assert store.add("a", None).id != store.add("b", None).id
-
-
-def test_list_empty() -> None:
-    assert InMemoryTaskStore().list() == []
-
-
-def test_list_preserves_insertion_order() -> None:
-    store = InMemoryTaskStore()
-    for title in ("a", "b", "c"):
-        store.add(title, None)
-    assert [t.title for t in store.list()] == ["a", "b", "c"]
-
-
-def test_list_returns_a_copy() -> None:
-    store = InMemoryTaskStore()
-    store.add("a", None)
-    snapshot = store.list()
-    snapshot.clear()
-    assert len(store.list()) == 1
-    store.add("b", None)
-    assert len(snapshot) == 0
-
-
-def test_concurrent_adds_lose_nothing() -> None:
-    store = InMemoryTaskStore()
-
-    def work() -> None:
-        for i in range(100):
-            store.add(f"t{i}", None)
-
-    threads = [Thread(target=work) for _ in range(8)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    tasks = store.list()
-    assert len(tasks) == 800
-    assert len({t.id for t in tasks}) == 800
+URL = "postgresql://u:p@127.0.0.1:1/db"
 
 
 def test_create_app_gives_each_app_its_own_store() -> None:
-    app1, app2 = create_app(), create_app()
-    assert isinstance(app1.state.task_store, InMemoryTaskStore)
+    app1, app2 = create_app(database_url=URL), create_app(database_url=URL)
+    assert isinstance(app1.state.task_store, PostgresTaskStore)
     assert app1.state.task_store is not app2.state.task_store
-    app1.state.task_store.add("only-in-1", None)
-    assert app2.state.task_store.list() == []
+
+
+def test_create_app_reads_database_url_from_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DATABASE_URL", URL)
+    store = create_app().state.task_store
+    assert store._database_url == URL
